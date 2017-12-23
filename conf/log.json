@@ -1,0 +1,21 @@
+{
+    "LogLevel" : "trace",
+
+    "FileWriter" : {
+        "On": true,
+
+        "LogPath" : "./log/log.info",
+        "RotateLogPath" : "./log/log.info.%Y%M%D%H",
+
+        "WfLogPath" : "./log/log.wf",
+        "RotateWfLogPath" : "./log/log.wf.%Y%M%D%H",
+        
+        "PublicLogPath" : "./log/public.log",
+        "RotatePublicLogPath" : "./log/public.log.%Y%M%D%H",
+        "PublicLogPrefix" : 0
+    },
+
+    "ConsoleWriter" : {
+        "On" : false
+    }
+}

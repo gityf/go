@@ -1,0 +1,20 @@
+{
+  "mysql": [
+    {
+      "database": "test1",
+      "dsn": "root:123456@tcp(127.0.0.1:3306)/test?autocommit=1&timeout=200ms&readTimeout=2s&writeTimeout=2s",
+      "dbdriver": "mysql",
+      "maxopenconn": 40,
+      "maxidleconn": 1,
+      "maxlifetime": 180
+    },
+    {
+      "database": "test2",
+      "dsn": "root:123456@tcp(127.0.0.1:3306)/test?autocommit=1&timeout=200ms&readTimeout=2s&writeTimeout=2s",
+      "dbdriver": "mysql",
+      "maxopenconn": 40,
+      "maxidleconn": 1,
+      "maxlifetime": 180
+    }
+  ]
+}

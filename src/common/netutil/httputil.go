@@ -1,4 +1,4 @@
-package netutils
+package netutil
 
 import (
 	"errors"
@@ -33,9 +33,9 @@ const (
 )
 
 func DoHttpPost(url string, data string, connTimeoutMs int, serveTimeoutMs int, httpErrInfo *HttpErrInfo) ([]byte, error) {
-	beginTime := NowInMs()
+	beginTime := time.Now().UnixNano() / int64(time.Millisecond)
 	defer func() {
-		endTime := NowInMs()
+		endTime := time.Now().UnixNano() / int64(time.Millisecond)
 		httpErrInfo.CostMs = endTime - beginTime
 	}()
 	client := &http.Client{
