@@ -3,12 +3,16 @@ package util
 import (
 	"fmt"
 	"reflect"
+	"math/rand"
 	"net"
 	"strconv"
 	"strings"
 	"time"
 	"bytes"
 	"encoding/json"
+	"runtime"
+	"path"
+	"math"
 )
 
 func ToInt64(data interface{}) (res int64, err error) {
@@ -96,30 +100,6 @@ func ToInt(data interface{}) (res int, err error) {
 		res, err = strconv.Atoi(strings.TrimSpace(string(data.([]byte))))
 	default:
 		res, err = strconv.Atoi(fmt.Sprintf("%v", data))
-	}
-	return
-}
-
-func ToDateTime(data interface{}) (res time.Time, err error) {
-	switch data.(type) {
-	case []byte:
-		res, err = time.ParseInLocation("2006-01-02 15:04:05", strings.TrimSpace(string(data.([]byte))), time.Local)
-	case string:
-		res, err = time.ParseInLocation("2006-01-02 15:04:05", strings.TrimSpace(data.(string)), time.Local)
-	default:
-		res, err = time.ParseInLocation("2006-01-02 15:04:05", fmt.Sprintf("%v", data), time.Local)
-	}
-	return
-}
-
-func ToDate(data interface{}) (res time.Time, err error) {
-	switch data.(type) {
-	case []byte:
-		res, err = time.ParseInLocation("2006-01-02", strings.TrimSpace(string(data.([]byte))), time.Local)
-	case string:
-		res, err = time.ParseInLocation("2006-01-02", strings.TrimSpace(data.(string)), time.Local)
-	default:
-		res, err = time.ParseInLocation("2006-01-02", fmt.Sprintf("%v", data), time.Local)
 	}
 	return
 }
@@ -212,18 +192,6 @@ func AbsDiffFloat32(fa, fb float32) (res float32) {
 		res = fb - fa
 	}
 	return
-}
-
-func DateTimeToString(dateTime time.Time) (dateTimeStr string) {
-	return dateTime.Format("2006-01-02 15:04:05")
-}
-
-func DateToString(dateTime time.Time) (dateStr string) {
-	return dateTime.Format("2006-01-02")
-}
-
-func DateTimeToStringMs(dateTime time.Time) (dateTimeStr string) {
-	return dateTime.Format("2006-01-02 15:04:05.999")
 }
 
 func EscapeStringBackslash(s string) string {
@@ -363,14 +331,42 @@ func JsonDecode(in []byte, out interface{}) (err error) {
 	return
 }
 
-func NowInS() int64 {
-	return time.Now().Unix()
+var rand_gen = rand.New(rand.NewSource(time.Now().UnixNano()))
+
+func RandInt() int {
+	return rand_gen.Int()
 }
 
-func NowInNs() int64 {
-	return time.Now().UnixNano()
+func RandIntn(max int) int {
+	return rand_gen.Intn(max)
 }
 
-func NowInMs() int64 {
-	return time.Now().UnixNano() / int64(time.Millisecond)
+func Abs(x int32) int32 {
+	switch {
+	case x < 0:
+		return -x
+	case x == 0:
+		return 0 // return correctly abs(-0)
+	}
+	return x
+}
+
+func Distance(flat float64, flng float64, tlat float64, tlng float64) (r int32) {
+	distance := math.Sqrt((flat-tlat)*(flat-tlat) + (flng-tlng)*(flng-tlng))
+	r = int32(distance * 100000)
+	return
+}
+
+// runtime
+func CallerName() string {
+	var pc uintptr
+	var file string
+	var line int
+	var ok bool
+	if pc, file, line, ok = runtime.Caller(1); !ok {
+		return ""
+	}
+	name := runtime.FuncForPC(pc).Name()
+	res := "[" + path.Base(file) + ":" + strconv.Itoa(line) + "]" + name
+	return res
 }
