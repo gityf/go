@@ -20,5 +20,5 @@ func signal_proc() {
 	// TODO close server gracefully.
 
 	logger.Warn("send quit signal")
-	mainProcessQuit <- sig
+	mainProcessQuit <- 1
 }
