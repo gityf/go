@@ -19,6 +19,12 @@ func main() {
 	// register signal proc
 	go signal_proc()
 
+	// init log
+	if err := logger.SetupLogWithConf(logFile); err != nil {
+		fmt.Println("log init fail: %s", err.Error())
+		return
+	}
+	defer logger.Close()
 
 	// wait signal to exit
 	value := <-mainProcessQuit

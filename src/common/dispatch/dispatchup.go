@@ -77,27 +77,3 @@ func DispatchHandleNoResponse(dispatcher MessageDispatcher, defaultErrNo int, ms
 	return resp
 }
 
-func dispatchEventMessage(msg *EventMessage) error {
-	return msg.CallFunc(msg)
-}
-
-//实现MessageDispatcher接口
-func (msg *EventMessage) Dispatch(defaultErrNo int, extra interface{}) (resp Responser) {
-	resp = msg.CallFunc(msg)
-	return
-}
-func (msg *EventMessage) DispatchDown(defaultErrNo int, extra interface{}) (resp Responser) {
-	var err error
-	var ddws *DispatchDownWorkspace
-	ddws, err = ddwsMgr.GetDispatchDownWorkspace(msg.Sid)
-	err = ddws.SendMessage(msg)
-	resp = msg.Message.Response(defaultErrNo, err)
-	return
-}
-
-func (msg *EventMessage) DispatchHandle(defaultErrNo int, extra interface{}) (resp Responser) {
-	err := dispatchEventMessage(msg)
-	resp = msg.Message.NoResponse(defaultErrNo, err)
-	return
-}
-

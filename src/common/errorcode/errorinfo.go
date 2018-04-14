@@ -1,3 +1,6 @@
 package errorcode
 
-var ERRNO_PANIC int = 500
+const (
+	ERRNO_PANIC  = 500
+	ERRNO_JSON_MARSHAL_FAILED = 400
+)

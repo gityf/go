@@ -1,0 +1,31 @@
+{
+  "profile": "sbox",
+  "dev": {
+    "port": 8110,
+    "profport": 6610,
+    "limitqps": 1000,
+    "EventConcurrency": 1,
+    "EventMessageQueueLen": 100000
+  },
+  "test": {
+    "port": 8110,
+    "profport": 6610,
+    "limitqps": 1000,
+    "EventConcurrency": 1,
+    "EventMessageQueueLen": 100000
+  },
+  "sbox": {
+    "port": 8110,
+    "profport": 6610,
+    "limitqps": 1000,
+    "EventConcurrency": 1,
+    "EventMessageQueueLen": 100000
+  },
+  "prod": {
+    "port": 8110,
+    "profport": 6610,
+    "limitqps": 1000,
+    "EventConcurrency": 1,
+    "EventMessageQueueLen": 100000
+  }
+}

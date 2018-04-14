@@ -4,8 +4,8 @@ import (
 	"io"
 	"encoding/json"
 	"fmt"
-	"global"
 	logger "github.com/xlog4go"
+	"common/errorcode"
 )
 
 type HttpResponse struct {
@@ -36,7 +36,8 @@ func (r *HttpResponse) ResponseJson(w io.Writer) (n int, err error) {
 	s, err = json.Marshal(r)
 	if err != nil {
 		logger.Error("json.Marshal err:%v", err)
-		s1 = fmt.Sprintf("{\"errno\":%v,\"errmsg\":\"%v\",\"logid\":\"%v\"}", global.ERR_JSON_MARSHAL_FAILED, err, r.LogId)
+		s1 = fmt.Sprintf("{\"errno\":%v,\"errmsg\":\"%v\",\"logid\":\"%v\"}",
+			errorcode.ERRNO_JSON_MARSHAL_FAILED, err, r.LogId)
 	} else {
 		s1 = string(s)
 	}
