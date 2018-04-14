@@ -3,4 +3,5 @@ package errorcode
 const (
 	ERRNO_PANIC  = 500
 	ERRNO_JSON_MARSHAL_FAILED = 400
+	ERRNO_HTTP_ACCESS_FAILED = 504
 )

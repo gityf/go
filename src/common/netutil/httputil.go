@@ -8,6 +8,8 @@ import (
 	"strings"
 	"fmt"
 	"io/ioutil"
+	"common/errorcode"
+	"common/detailerror"
 )
 
 
@@ -32,7 +34,10 @@ const (
 	HTTP_REQU_RETRY_TIMES    = 3
 )
 
-func DoHttpPost(url string, data string, connTimeoutMs int, serveTimeoutMs int, httpErrInfo *HttpErrInfo) ([]byte, error) {
+func DoHttpPost(header map[string]string, url string, data string, connTimeoutMs int, serveTimeoutMs int, httpErrInfo *HttpErrInfo) ([]byte, error) {
+	if httpErrInfo == nil {
+		httpErrInfo = &HttpErrInfo{}
+	}
 	beginTime := time.Now().UnixNano() / int64(time.Millisecond)
 	defer func() {
 		endTime := time.Now().UnixNano() / int64(time.Millisecond)
@@ -53,7 +58,9 @@ func DoHttpPost(url string, data string, connTimeoutMs int, serveTimeoutMs int, 
 
 	body := strings.NewReader(data)
 	reqest, _ := http.NewRequest("POST", url, body)
-	reqest.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	for key, value := range header {
+		reqest.Header.Set(key, value)
+	}
 	response, err := client.Do(reqest)
 	if err != nil {
 		httpErrInfo.HttpErr = "post_err"
@@ -82,7 +89,7 @@ func DoHttpPost(url string, data string, connTimeoutMs int, serveTimeoutMs int, 
 	return res_body, nil
 }
 
-func DoHttpGet(url string, connTimeoutMs int, serveTimeoutMs int) ([]byte, error) {
+func DoHttpGet(header map[string]string, url string, connTimeoutMs int, serveTimeoutMs int) ([]byte, error) {
 	client := &http.Client{
 		Transport: &http.Transport{
 			Dial: func(netw, addr string) (net.Conn, error) {
@@ -97,9 +104,9 @@ func DoHttpGet(url string, connTimeoutMs int, serveTimeoutMs int) ([]byte, error
 	}
 
 	reqest, _ := http.NewRequest("GET", url, nil)
-	reqest.Header.Add("Accept-Encoding", "text/plain; charset=utf-8")
-	reqest.Header.Add("User-Agent", "")
-	reqest.Header.Add("Connection", "Close")
+	for key, value := range header {
+		reqest.Header.Set(key, value)
+	}
 	response, err := client.Do(reqest)
 	if err != nil {
 		err = errors.New(fmt.Sprintf("http failed, GET url:%s, reason:%s", url, err.Error()))
@@ -118,4 +125,43 @@ func DoHttpGet(url string, connTimeoutMs int, serveTimeoutMs int) ([]byte, error
 		return nil, err
 	}
 	return res_body, nil
+}
+
+func HttpGet(header map[string]string, url string, connTimeoutMs int, serveTimeoutMs int, retryTimes int) (res []byte, err error) {
+	for i := 0; i < retryTimes; i++ {
+		//info := "curl -d '" + data + "' \"" + url + "\""
+		//logger.Debug("HttpGet info: %v", info)
+		res, err = DoHttpGet(header, url, connTimeoutMs, serveTimeoutMs)
+
+		if err == nil {
+			break
+		}
+
+		if i == retryTimes {
+			err = detailerror.New(errorcode.ERRNO_HTTP_ACCESS_FAILED, err.Error())
+			break
+		}
+		time.Sleep(time.Duration(5) * time.Millisecond)
+	}
+	return res, err
+}
+
+func HttpPost(header map[string]string, url string, data string, connTimeoutMs int, serveTimeoutMs int, retryTimes int) (res []byte, err error) {
+
+	for i := 0; i < retryTimes; i++ {
+		//info := "curl -d '" + data + "' \"" + url + "\""
+		//logger.Debug("HttpPost info: %v", info)
+		res, err = DoHttpPost(header, url, data, connTimeoutMs, serveTimeoutMs, nil)
+
+		if err == nil {
+			break
+		}
+
+		if i == retryTimes {
+			err = detailerror.New(errorcode.ERRNO_HTTP_ACCESS_FAILED, err.Error())
+			break
+		}
+		time.Sleep(time.Duration(5) * time.Millisecond)
+	}
+	return res, err
 }
