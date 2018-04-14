@@ -10,7 +10,7 @@ func main() {
 	fmt.Println("hi mysql")
 	db, err := sql.Open("mysql","root:123456@tcp(192.10.1.120:3306)/meetme")
 	if err != nil {
-		fmt.Printf("error %s", err.Error())
+		fmt.Printf("errorcode %s", err.Error())
 	}
 	defer db.Close()
 	stmtQry, err := db.Prepare("select id, admin, password from user where id=?")

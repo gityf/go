@@ -58,7 +58,7 @@ func (pool *DBPool) GetConn() (conn *sql.DB, err error) {
 				//conn.SetConnMaxLifetime(time.Minute * 3) //根据DBA建议,设置3分钟
 				logger.Debug("DBPool: get nil conn from pool, open one: %v", conn)
 			} else {
-				logger.Error("DBPool: error while open new conn")
+				logger.Error("DBPool: errorcode while open new conn")
 			}
 		}
 	case <-time.After(pool.timeout):
@@ -114,7 +114,7 @@ func doCloseConn(conn *sql.DB) (err error) {
 	if conn != nil {
 		err = conn.Close()
 		if err != nil {
-			logger.Error("DBPool: error while close conn: %v", err)
+			logger.Error("DBPool: errorcode while close conn: %v", err)
 		}
 	}
 	return

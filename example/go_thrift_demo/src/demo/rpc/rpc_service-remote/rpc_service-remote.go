@@ -71,13 +71,13 @@ func main() {
 		if strings.Contains(host, ":") {
 			host, portStr, err = net.SplitHostPort(host)
 			if err != nil {
-				fmt.Fprintln(os.Stderr, "error with host:", err)
+				fmt.Fprintln(os.Stderr, "errorcode with host:", err)
 				os.Exit(1)
 			}
 		}
 		trans, err = thrift.NewTSocket(net.JoinHostPort(host, portStr))
 		if err != nil {
-			fmt.Fprintln(os.Stderr, "error resolving address:", err)
+			fmt.Fprintln(os.Stderr, "errorcode resolving address:", err)
 			os.Exit(1)
 		}
 		if framed {

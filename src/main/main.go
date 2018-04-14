@@ -10,6 +10,9 @@ var mainProcessQuit chan int
 
 func main() {
 	print("hi gopher")
+	// main proc setup env
+	MainProcSetup()
+
 	mainProcessQuit = make(chan int)
 
 

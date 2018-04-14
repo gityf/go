@@ -95,7 +95,7 @@ func SetupLogWithConf(file string) (err error) {
 	case "warning":
 		SetLevel(WARNING)
 
-	case "error":
+	case "errorcode":
 		SetLevel(ERROR)
 
 	case "fatal":

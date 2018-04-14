@@ -66,7 +66,7 @@ func DoHttpPost(url string, data string, connTimeoutMs int, serveTimeoutMs int, 
 	if response.StatusCode != 200 {
 		httpErrInfo.HttpErr = "response_err"
 		httpErrInfo.ErrCode = response.StatusCode
-		err = errors.New(fmt.Sprintf("http status code error, POST url:%s, code:%d", url, response.StatusCode))
+		err = errors.New(fmt.Sprintf("http status code errorcode, POST url:%s, code:%d", url, response.StatusCode))
 		return nil, err
 	}
 
@@ -108,7 +108,7 @@ func DoHttpGet(url string, connTimeoutMs int, serveTimeoutMs int) ([]byte, error
 	defer response.Body.Close()
 
 	if response.StatusCode != 200 {
-		err = errors.New(fmt.Sprintf("http status code error, GET url:%s, code:%d", url, response.StatusCode))
+		err = errors.New(fmt.Sprintf("http status code errorcode, GET url:%s, code:%d", url, response.StatusCode))
 		return nil, err
 	}
 

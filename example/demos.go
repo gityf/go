@@ -33,7 +33,7 @@ func  readFile(name string) {
 
 	file,err := os.Open(name)
 	if err != nil {
-		fmt.Println("open file error", err)
+		fmt.Println("open file errorcode", err)
 		return
 	}
 	defer file.Close()

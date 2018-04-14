@@ -16,7 +16,7 @@ func main() {
  
     transport, err := thrift.NewTSocket(net.JoinHostPort("127.0.0.1", "19090"))
     if err != nil {
-        fmt.Fprintln(os.Stderr, "error resolving address:", err)
+        fmt.Fprintln(os.Stderr, "errorcode resolving address:", err)
         os.Exit(1)
     }
  

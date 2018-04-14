@@ -22,6 +22,4 @@ output:build
 	mkdir -p output/web
 	cp -r bin/gopher output/bin/
 	cp -r conf/* output/conf/
-	cp -r test/* output/test/
-	cp -r test/* output/web/
 
