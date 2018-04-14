@@ -2,7 +2,7 @@ package encrypt
 
 type IEncrypt interface {
 	// Encrypt
-	AesEncrypt(plain, key []byte) ([]byte, error)
+	Encrypt(plain, key []byte) ([]byte, error)
 	// Decrypt
-	AesDecrypt(cipher, key []byte) ([]byte, error)
+	Decrypt(cipher, key []byte) ([]byte, error)
 }
