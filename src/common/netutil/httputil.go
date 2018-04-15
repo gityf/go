@@ -89,7 +89,15 @@ func DoHttpPost(header map[string]string, url string, data string, connTimeoutMs
 	return res_body, nil
 }
 
-func DoHttpGet(header map[string]string, url string, connTimeoutMs int, serveTimeoutMs int) ([]byte, error) {
+func DoHttpGet(header map[string]string, url string, connTimeoutMs int, serveTimeoutMs int, httpErrInfo *HttpErrInfo) ([]byte, error) {
+	if httpErrInfo == nil {
+		httpErrInfo = &HttpErrInfo{}
+	}
+	beginTime := time.Now().UnixNano() / int64(time.Millisecond)
+	defer func() {
+		endTime := time.Now().UnixNano() / int64(time.Millisecond)
+		httpErrInfo.CostMs = endTime - beginTime
+	}()
 	client := &http.Client{
 		Transport: &http.Transport{
 			Dial: func(netw, addr string) (net.Conn, error) {
@@ -109,29 +117,35 @@ func DoHttpGet(header map[string]string, url string, connTimeoutMs int, serveTim
 	}
 	response, err := client.Do(reqest)
 	if err != nil {
+		httpErrInfo.ErrCode = 400
+		httpErrInfo.HttpErr = "get err"
 		err = errors.New(fmt.Sprintf("http failed, GET url:%s, reason:%s", url, err.Error()))
 		return nil, err
 	}
 	defer response.Body.Close()
 
 	if response.StatusCode != 200 {
+		httpErrInfo.ErrCode = response.StatusCode
+		httpErrInfo.HttpErr = "response_err"
 		err = errors.New(fmt.Sprintf("http status code errorcode, GET url:%s, code:%d", url, response.StatusCode))
 		return nil, err
 	}
 
 	res_body, err := ioutil.ReadAll(response.Body)
 	if err != nil {
+		httpErrInfo.HttpErr = "response_body_err"
+		httpErrInfo.ErrCode = 200
 		err = errors.New(fmt.Sprintf("cannot read http response, GET url:%s, reason:%s", url, err.Error()))
 		return nil, err
 	}
 	return res_body, nil
 }
 
-func HttpGet(header map[string]string, url string, connTimeoutMs int, serveTimeoutMs int, retryTimes int) (res []byte, err error) {
+func HttpGet(header map[string]string, url string, connTimeoutMs int, serveTimeoutMs int, retryTimes int, httpErrInfo *HttpErrInfo) (res []byte, err error) {
 	for i := 0; i < retryTimes; i++ {
 		//info := "curl -d '" + data + "' \"" + url + "\""
 		//logger.Debug("HttpGet info: %v", info)
-		res, err = DoHttpGet(header, url, connTimeoutMs, serveTimeoutMs)
+		res, err = DoHttpGet(header, url, connTimeoutMs, serveTimeoutMs, httpErrInfo)
 
 		if err == nil {
 			break
@@ -146,12 +160,12 @@ func HttpGet(header map[string]string, url string, connTimeoutMs int, serveTimeo
 	return res, err
 }
 
-func HttpPost(header map[string]string, url string, data string, connTimeoutMs int, serveTimeoutMs int, retryTimes int) (res []byte, err error) {
+func HttpPost(header map[string]string, url string, data string, connTimeoutMs int, serveTimeoutMs int, retryTimes int, httpErrInfo *HttpErrInfo) (res []byte, err error) {
 
 	for i := 0; i < retryTimes; i++ {
 		//info := "curl -d '" + data + "' \"" + url + "\""
 		//logger.Debug("HttpPost info: %v", info)
-		res, err = DoHttpPost(header, url, data, connTimeoutMs, serveTimeoutMs, nil)
+		res, err = DoHttpPost(header, url, data, connTimeoutMs, serveTimeoutMs, httpErrInfo)
 
 		if err == nil {
 			break
