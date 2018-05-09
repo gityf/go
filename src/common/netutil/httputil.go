@@ -10,6 +10,7 @@ import (
 	"io/ioutil"
 	"common/errorcode"
 	"common/detailerror"
+	"net/url"
 )
 
 
@@ -22,9 +23,10 @@ type RespMsg struct {
 }
 
 type HttpErrInfo struct {
-	HttpErr string
-	ErrCode int
-	CostMs  int64
+	HttpErr  string
+	ProxyUrl string
+	ErrCode  int
+	CostMs   int64
 }
 
 const (
@@ -141,12 +143,67 @@ func DoHttpGet(header map[string]string, url string, connTimeoutMs int, serveTim
 	return res_body, nil
 }
 
+func DoHttpGetProxy(header map[string]string, httpUrl string, connTimeoutMs int, serveTimeoutMs int, httpErrInfo *HttpErrInfo) ([]byte, error) {
+	if httpErrInfo == nil {
+		httpErrInfo = &HttpErrInfo{}
+	}
+	beginTime := time.Now().UnixNano() / int64(time.Millisecond)
+	defer func() {
+		endTime := time.Now().UnixNano() / int64(time.Millisecond)
+		httpErrInfo.CostMs = endTime - beginTime
+	}()
+	proxy := func(_ *http.Request) (*url.URL, error) {
+		return url.Parse(httpErrInfo.ProxyUrl)
+	}
+	client := &http.Client{
+		Transport: &http.Transport{
+			Proxy: proxy,
+			Dial: func(netw, addr string) (net.Conn, error) {
+				c, err := net.DialTimeout(netw, addr, time.Duration(connTimeoutMs)*time.Millisecond)
+				if err != nil {
+					return nil, err
+				}
+				c.SetDeadline(time.Now().Add(time.Duration(serveTimeoutMs) * time.Millisecond))
+				return c, nil
+			},
+		},
+	}
+
+	reqest, _ := http.NewRequest("GET", httpUrl, nil)
+	for key, value := range header {
+		reqest.Header.Set(key, value)
+	}
+	response, err := client.Do(reqest)
+	if err != nil {
+		httpErrInfo.ErrCode = 400
+		httpErrInfo.HttpErr = "get err"
+		err = errors.New(fmt.Sprintf("http failed, GET url:%s, reason:%s", httpUrl, err.Error()))
+		return nil, err
+	}
+	defer response.Body.Close()
+
+	if response.StatusCode != 200 {
+		httpErrInfo.ErrCode = response.StatusCode
+		httpErrInfo.HttpErr = "response_err"
+		err = errors.New(fmt.Sprintf("http status code errorcode, GET url:%s, code:%d", httpUrl, response.StatusCode))
+		return nil, err
+	}
+
+	res_body, err := ioutil.ReadAll(response.Body)
+	if err != nil {
+		httpErrInfo.HttpErr = "response_body_err"
+		httpErrInfo.ErrCode = 200
+		err = errors.New(fmt.Sprintf("cannot read http response, GET url:%s, reason:%s", httpUrl, err.Error()))
+		return nil, err
+	}
+	return res_body, nil
+}
+
 func HttpGet(header map[string]string, url string, connTimeoutMs int, serveTimeoutMs int, retryTimes int, httpErrInfo *HttpErrInfo) (res []byte, err error) {
 	for i := 0; i < retryTimes; i++ {
 		//info := "curl -d '" + data + "' \"" + url + "\""
 		//logger.Debug("HttpGet info: %v", info)
 		res, err = DoHttpGet(header, url, connTimeoutMs, serveTimeoutMs, httpErrInfo)
-
 		if err == nil {
 			break
 		}
@@ -167,6 +224,24 @@ func HttpPost(header map[string]string, url string, data string, connTimeoutMs i
 		//logger.Debug("HttpPost info: %v", info)
 		res, err = DoHttpPost(header, url, data, connTimeoutMs, serveTimeoutMs, httpErrInfo)
 
+		if err == nil {
+			break
+		}
+
+		if i == retryTimes {
+			err = detailerror.New(errorcode.ERRNO_HTTP_ACCESS_FAILED, err.Error())
+			break
+		}
+		time.Sleep(time.Duration(5) * time.Millisecond)
+	}
+	return res, err
+}
+
+func HttpGetProxy(header map[string]string, url string, connTimeoutMs int, serveTimeoutMs int, retryTimes int, httpErrInfo *HttpErrInfo) (res []byte, err error) {
+	for i := 0; i < retryTimes; i++ {
+		//info := "curl -d '" + data + "' \"" + url + "\""
+		//logger.Debug("HttpGet info: %v", info)
+		res, err = DoHttpGetProxy(header, url, connTimeoutMs, serveTimeoutMs, httpErrInfo)
 		if err == nil {
 			break
 		}
