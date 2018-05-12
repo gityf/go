@@ -4,29 +4,38 @@ import (
 	"global"
 	logger "github.com/xlog4go"
 )
-/**
-Step:
+ /**
+ Step:
  // 1. declare message handler function.
  func msgHandler(eventMsg *EventMessage) Responser {
   ...
  }
 
- // 2. init dispatch
- initDispatch()
+ // 2. init dispatch manager and add dispatchor. 
+ InitDispatchMananger()
+ AddDispatcher()
+
  // 3. get dispatcher
  ddws = GetDefaultDispatcher()
+
  // 4. new message and send to dispatcher queue.
  eventMsg := &EventMessage{
-	CallFunc: msgHandler,
+       CallFunc: msgHandler,
  }
  ddws.SendMessage(eventMsg)
-*/
+ */
 // to manage workspace of multi-biz
 var ddwsMgr *DispatchDownWorkspaceManager
 
-func initDispatch(eventConcurrency, eventMessageQueueLen int) (err error) {
+func InitDispatchMananger() {
 	//init DispatchDownWorkspaceManager
 	ddwsMgr = NewDispatchDownWorkspaceManager()
+}
+
+func AddDispatcher(eventConcurrency, eventMessageQueueLen int, sid string) (err error) {
+	if ddwsMgr == nil {
+		InitDispatchMananger()
+	}
 
 	//Dispatch DownStream initial Begin...
 	var ddws *DispatchDownWorkspace
@@ -40,7 +49,7 @@ func initDispatch(eventConcurrency, eventMessageQueueLen int) (err error) {
 		return
 	}
 	ddws.Start()
-	ddwsMgr.Insert(global.DEFAULT_SID, ddws)
+	ddwsMgr.Insert(sid, ddws)
 	return
 }
 
@@ -48,3 +57,9 @@ func GetDefaultDispatcher() (ddws *DispatchDownWorkspace) {
 	ddws, _ = ddwsMgr.GetDispatchDownWorkspace(global.DEFAULT_SID)
 	return
 }
+
+func GetDispatcherBySid(sid string) (ddws *DispatchDownWorkspace) {
+	ddws, _ = ddwsMgr.GetDispatchDownWorkspace(sid)
+	return
+}
+

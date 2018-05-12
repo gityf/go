@@ -101,7 +101,7 @@ PROCESS_LOOP:
 		select {
 		case msg := <-ddws.eventMessgageQueue:
 			//dispatchEventMessage(msg)
-			DispatchHandleNoResponse(msg, 0, msg.Message)
+			DispatchHandleNoResponse(msg, 0, msg.EventTime)
 		case <-ddws.closeSignal:
 			break PROCESS_LOOP
 		}

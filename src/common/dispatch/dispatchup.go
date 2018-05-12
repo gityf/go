@@ -37,43 +37,28 @@ func DispatchMessageWithResponse(msg MessageDispatcher, sync bool, defaultErrNo 
 }
 
 // 调度入口-分发消息不等待返回
-func DispatchHandleNoResponse(dispatcher MessageDispatcher, defaultErrNo int, msg *Message) Responser {
+func DispatchHandleNoResponse(dispatcher MessageDispatcher, defaultErrNo int, tBegin time.Time) Responser {
 	var resp Responser
 	var errCode int
-	var clientLogId string
 	var logId int64
-
-	info := msg.RequestInfo
-	tBegin := info["now"].(time.Time)
-	clientLogId = msg.ClientLogId
-	logId = msg.LogId
 
 	//在异步队列中的耗时
 	dispatchLatency := time.Since(tBegin)
 	defer func() {
 		latency := time.Since(tBegin)
-		if resp != nil {
-			errCode = resp.ErrCode()
-		} else {
-			//unlikely
-			errCode = -1
-		}
 		//捕捉panic
 		if err := recover(); err != nil {
 			errCode = errorcode.ERRNO_PANIC
 			logger.Error("[ASYNC] LogId:%d HandleError# recover errno:%d stack:%s", logId, errCode, string(debug.Stack()))
 			statistic.IncPanicCount()
 		}
-		//发送监控数据
-		if errCode != 0 {
-			logger.Error("[ASYNC] %v [traceid:%v LogId:%d] errno:%d", info["name"], clientLogId, logId, errCode)
-		}
 
-		logger.Info("[ASYNC][do=%v logId:%v # dispatchLatency(ms):%.2f latency(ms):%.2f",
-			info["name"], logId, dispatchLatency.Seconds()*1000, latency.Seconds()*1000)
+		logger.Info("[ASYNC][logId:%v # dispatchLatency(ms):%.2f latency(ms):%.2f",
+			logId, dispatchLatency.Seconds()*1000, latency.Seconds()*1000)
 	}()
 
 	resp = dispatcher.DispatchHandle(defaultErrNo, "")
 	return resp
 }
+
 
