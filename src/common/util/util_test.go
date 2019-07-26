@@ -3,7 +3,6 @@ package util
 import (
 	"testing"
 	"time"
-	"fmt"
 )
 
 func TestTransToString(t *testing.T) {
